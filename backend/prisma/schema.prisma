@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Catador {
+  id           String      @id @default(uuid())
+  nome         String
+  cpf          String      @unique
+  telefone     String
+  dataCadastro DateTime    @default(now())
+  status       String      @default("ativo") // "ativo" ou "inativo"
+  coletas      Coleta[]
+  pagamentos   Pagamento[]
+}
+
+model Material {
+  id         String       @id @default(uuid())
+  nome       String
+  precoPorKg Float
+  unidade    String       @default("kg")
+  itens      ItemColeta[]
+}
+
+model Coleta {
+  id         String       @id @default(uuid())
+  catadorId  String
+  catador    Catador      @relation(fields: [catadorId], references: [id])
+  dataColeta DateTime     @default(now())
+  valorTotal Float
+  itens      ItemColeta[]
+}
+
+model ItemColeta {
+  id         String   @id @default(uuid())
+  coletaId   String
+  coleta     Coleta   @relation(fields: [coletaId], references: [id], onDelete: Cascade)
+  materialId String
+  material   Material @relation(fields: [materialId], references: [id])
+  peso       Float
+  subtotal   Float
+}
+
+model Pagamento {
+  id               String   @id @default(uuid())
+  catadorId        String
+  catador          Catador  @relation(fields: [catadorId], references: [id])
+  valor            Float
+  referenciaMesAno String
+  status           String   @default("pendente") // "pendente" ou "concluido"
+  dataPagamento    DateTime @default(now())
+}
+
+model Usuario {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senha     String
+  createdAt DateTime @default(now())
+}
